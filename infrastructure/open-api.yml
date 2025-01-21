@@ -1,0 +1,218 @@
+openapi: '3.0.2'
+
+info:
+    version: '1.0.0'
+    description: 'This API provides all methods for a single resource, thing'
+    title: 'Test OpenAPI Spec for things'
+
+x-amazon-apigateway-request-validators:
+    body-only:
+        validateRequestParameters: false
+        validateRequestBody: true
+    params-only:
+        validateRequestParameters: true
+        validateRequestBody: false
+
+servers:
+    - url: https://api.czhealy.com
+
+security:
+    - bearerAuth: []
+
+components:
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
+    requestBodies:
+        ThingRequest:
+            description: Thing Request
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ThingRequestSchema'
+    responses:
+        ThingsResponse:
+            description: Response for many Things
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ThingResponseSchema'
+        ThingResponse:
+            description: Response for Thing
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ThingResponseSchema'
+        ErrorResponse:
+            description: Error response
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+    schemas:
+        ThingResponseSchema:
+          type: object
+          title: Thing Response
+          description: All of the attributes of a thing
+          properties:
+              id:
+                  types: string
+              name:
+                  type: string
+                  description: The name of the thing.
+              status:
+                  type: string
+                  description: Status of the thing.
+                  readOnly: true
+                  enum:
+                    - New
+                    - Verified
+                  example: "New"
+              updatedAt:
+                  type: string
+                  format: date-time
+                  description: The timestamp when the entity was inserted.
+              updatedBy:
+                  type: string
+                  description: The identifier of the user who last updated the entity
+              createdAt:
+                  type: string
+                  format: date-time
+                  description: The timestamp when the entity was created.
+              createdBy:
+                  type: string
+                  description: The identifier of the user who created the entity
+        ThingRequestSchema:
+          type: object
+          title: Thing Request
+          description: Mutable properties of a thing
+          required:
+                - code
+                - name
+          properties:
+              name:
+                type: string
+                description: The name of the thing.
+              code:
+                type: string
+                maxLength: 4
+                example: "TH01"
+                  
+paths:
+    /things:
+        get:
+          operationId: listThings
+          summary: List all things
+          x-amazon-apigateway-integration:
+            type: aws_proxy
+            httpMethod: POST
+            passthroughBehavior: when_no_match
+            payloadFormatVersion: '1.0'
+            uri:
+                Fn::Sub:
+                    - arn:aws:apigateway:${AWSRegion}:lambda:path/2015-03-31/functions/${ListThingsApiLambda.Arn}/invocations
+                    - AWSRegion:
+                          Ref: AWS::Region
+                      ApiLambdaFunction:
+                          Fn::GetAtt:
+                              - ListThingsApiLambda
+                              - Arn
+          responses:
+            '200':
+                $ref: '#/components/responses/ThingsResponse'
+            '400':
+                $ref: '#/components/responses/ErrorResponse'
+            '401':
+                $ref: '#/components/responses/ErrorResponse'
+        post:
+            operationId: postThing
+            summary: Create new thing
+            x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                payloadFormatVersion: '1.0'
+                uri:
+                    Fn::Sub:
+                        - arn:aws:apigateway:${AWSRegion}:lambda:path/2015-03-31/functions/${PostThingApiLambda.Arn}/invocations
+                        - AWSRegion:
+                              Ref: AWS::Region
+                          ApiLambdaFunction:
+                              Fn::GetAtt:
+                                  - PostThingApiLambda
+                                  - Arn
+            requestBody:
+              $ref: '#/components/requestBodies/ThingRequest'
+            responses:
+                '201':
+                    $ref: '#/components/responses/ThingResponse'
+                '400':
+                    $ref: '#/components/responses/ErrorResponse'
+                '401':
+                    $ref: '#/components/responses/ErrorResponse'
+    '/things/{thingId}':
+        get:
+            oeprationId: getThing
+            summary: Get a specific thing
+            x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                payloadFormatVersion: '1.0'
+                uri:
+                    Fn::Sub:
+                        - arn:aws:apigateway:${AWSRegion}:lambda:path/2015-03-31/functions/${GetThingApiLambda.Arn}/invocations
+                        - AWSRegion:
+                              Ref: AWS::Region
+                          ApiLambdaFunction:
+                              Fn::GetAtt:
+                                  - GetThingApiLambda
+                                  - Arn
+            responses:
+                '200':
+                    $ref: '#/components/responses/ThingResponse'
+                '401':
+                    $ref: '#/components/responses/ErrorResponse'
+                '404':
+                    $ref: '#/components/responses/ErrorResponse'
+        parameters:
+            - name: thingId
+              in: path
+              required: true
+              description: id of thing
+              schema:
+                  type: string
+                  pattern: ^[a-z]{3,5}_[0-9A-Za-z]{22}$
+        delete:
+            operationId: deleteThing
+            summary: Delete a specific thing
+            x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                payloadFormatVersion: '1.0'
+                uri:
+                    Fn::Sub:
+                        - arn:aws:apigateway:${AWSRegion}:lambda:path/2015-03-31/functions/${DeleteThingApiLambda.Arn}/invocations
+                        - AWSRegion:
+                              Ref: AWS::Region
+                          ApiLambdaFunction:
+                              Fn::GetAtt:
+                                  - DeleteThingApiLambda
+                                  - Arn
+            responses:
+                '204':
+                    description: Thing deleted successfully
+                '401':
+                    $ref: '#/components/responses/ErrorResponse'
+                '404':
+                    $ref: '#/components/responses/ErrorResponse'
+    
+        

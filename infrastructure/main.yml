@@ -1,0 +1,193 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Transform:
+    - AWS::Serverless-2016-10-31
+Description: Contains API and lambda for each endpoint
+
+Parameters:
+    Environment:
+        Type: String
+    Application:
+        Type: String
+    RestApiStageName:
+        Type: String
+        Description: Stage name for the API
+        Default: v0
+    LambdaRuntimeArchitecture:
+        Type: String
+        Description: Runtime architecture for the lambda function
+        Default: arm64
+    TimeoutInSeconds:
+        Type: Number
+        Description: Timeout in seconds for the lambda function
+        Default: 5
+    
+
+Globals:
+    Function:
+        MemorySize: 512
+        Runtime: nodejs22.x
+        Timeout: !Ref TimeoutInSeconds
+        Environment:
+            Variables:
+                NODE_OPTIONS: --enable-source-maps
+
+Resources:
+    ListThingsApiLambda:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ../code/api/handlers
+            Architectures:
+                - !Ref LambdaRuntimeArchitecture
+            Description: List things
+            FunctionName: !Sub ${Environment}-${Application}-list-things-api
+            Handler: thing.listHandler
+            Policies:
+                - AWSLambdaBasicExecutionRole
+            Tracing: PassThrough # Tracing is collected by Datadog Lambda Extension integration
+        Metadata:
+            BuildMethod: esbuild
+            BuildProperties:
+                Minify: true
+                Target: 'es2020'
+                Sourcemap: true
+                EntryPoints:
+                    - thing.ts
+    
+    ListThingsApiLambdaPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            FunctionName: !Ref ListThingsApiLambda
+            Action: lambda:InvokeFunction
+            Principal: apigateway.amazonaws.com
+
+    GetThingApiLambda:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ../code/api/handlers
+            Architectures:
+                - !Ref LambdaRuntimeArchitecture
+            Description: GET thing
+            FunctionName: !Sub ${Environment}-${Application}-get-thing-api
+            Handler: thing.getHandler
+            Policies:
+                - AWSLambdaBasicExecutionRole
+            Tracing: PassThrough # Tracing is collected by Datadog Lambda Extension integration
+        Metadata:
+            BuildMethod: esbuild
+            BuildProperties:
+                Minify: true
+                Target: 'es2020'
+                Sourcemap: true
+                EntryPoints:
+                    - thing.ts
+    
+    GetThingApiLambdaPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            FunctionName: !Ref GetThingApiLambda
+            Action: lambda:InvokeFunction
+            Principal: apigateway.amazonaws.com
+
+    PostThingApiLambda:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ../code/api/handlers
+            Architectures:
+                - !Ref LambdaRuntimeArchitecture
+            Description: GET thing
+            FunctionName: !Sub ${Environment}-${Application}-post-thing-api
+            Handler: thing.postHandler
+            Policies:
+                - AWSLambdaBasicExecutionRole
+            Tracing: PassThrough # Tracing is collected by Datadog Lambda Extension integration
+        Metadata:
+            BuildMethod: esbuild
+            BuildProperties:
+                Minify: true
+                Target: 'es2020'
+                Sourcemap: true
+                EntryPoints:
+                    - thing.ts
+    
+    PostThingApiLambdaPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            FunctionName: !Ref PostThingApiLambda
+            Action: lambda:InvokeFunction
+            Principal: apigateway.amazonaws.com
+
+    DeleteThingApiLambda:
+        Type: AWS::Serverless::Function
+        Properties:
+            CodeUri: ../code/api/handlers
+            Architectures:
+                - !Ref LambdaRuntimeArchitecture
+            Description: GET thing
+            FunctionName: !Sub ${Environment}-${Application}-delete-thing-api
+            Handler: thing.deleteHandler
+            Policies:
+                - AWSLambdaBasicExecutionRole
+            Tracing: PassThrough # Tracing is collected by Datadog Lambda Extension integration
+        Metadata:
+            BuildMethod: esbuild
+            BuildProperties:
+                Minify: true
+                Target: 'es2020'
+                Sourcemap: true
+                EntryPoints:
+                    - thing.ts
+    
+    DeleteThingApiLambdaPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            FunctionName: !Ref DeleteThingApiLambda
+            Action: lambda:InvokeFunction
+            Principal: apigateway.amazonaws.com
+
+    RestApi:
+        Type: AWS::Serverless::Api
+        Properties:
+            DefinitionBody:
+                Fn::Transform:
+                    Name: AWS::Include
+                    Parameters:
+                        Location: open-api.yml
+            MethodSettings:
+                - DataTraceEnabled: true
+                  HttpMethod: '*'
+                  LoggingLevel: 'INFO'
+                  ResourcePath: '/*'
+                  MetricsEnabled: true
+            MinimumCompressionSize: 1000
+            Name: !Sub ${Environment}-${Application}-RestApi
+            OpenApiVersion: '3.0.1' # Declaring this option prevents AWS SAM from creating a default "Stage"
+            StageName: !Ref RestApiStageName
+            TracingEnabled: false # Tracing is collected by Datadog Lambda Extension integration
+
+   
+    RestApiLogGroup:
+        Type: AWS::Logs::LogGroup
+        Properties:
+            LogGroupName: !Sub ${Environment}-${Application}-RestApi-AccessLogs
+
+Outputs:
+    #
+    # AWS SAM generated AWS CloudFormation resources
+    # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-generated-resources-api.html#sam-specification-generated-resources-api-usage-plan
+    #
+    RestApiUrl:
+        Description: 'REST API endpoint'
+        Value: !Sub 'https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${RestApiStageName}/'
+    RestApiId:
+        Description: 'REST API ID'
+        Value: !Ref RestApi
+    RestApiRootResourceId:
+        Description: 'REST API Root Resource ID'
+        Value: !GetAtt RestApi.RootResourceId
+    RestApiName:
+        Description: 'REST API name'
+        Value: !Sub ${Environment}-${Application}-RestApi
+    RestApiStageName:
+        Description: 'REST API stage name'
+        Value: !Ref RestApiStageName
