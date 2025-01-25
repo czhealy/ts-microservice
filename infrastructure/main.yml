@@ -36,12 +36,12 @@ Resources:
     ListThingsApiLambda:
         Type: AWS::Serverless::Function
         Properties:
-            CodeUri: ../code/api/handlers
+            CodeUri: ../code/handlers/api
             Architectures:
                 - !Ref LambdaRuntimeArchitecture
             Description: List things
             FunctionName: !Sub ${Environment}-${Application}-list-things-api
-            Handler: thing.listHandler
+            Handler: things.listHandler
             Policies:
                 - AWSLambdaBasicExecutionRole
             Tracing: PassThrough # Tracing is collected by Datadog Lambda Extension integration
@@ -52,7 +52,7 @@ Resources:
                 Target: 'es2020'
                 Sourcemap: true
                 EntryPoints:
-                    - thing.ts
+                    - things.ts
     
     ListThingsApiLambdaPermission:
         Type: AWS::Lambda::Permission
@@ -64,12 +64,12 @@ Resources:
     GetThingApiLambda:
         Type: AWS::Serverless::Function
         Properties:
-            CodeUri: ../code/api/handlers
+            CodeUri: ../code/handlers/api
             Architectures:
                 - !Ref LambdaRuntimeArchitecture
             Description: GET thing
             FunctionName: !Sub ${Environment}-${Application}-get-thing-api
-            Handler: thing.getHandler
+            Handler: things.getHandler
             Policies:
                 - AWSLambdaBasicExecutionRole
             Tracing: PassThrough # Tracing is collected by Datadog Lambda Extension integration
@@ -80,7 +80,7 @@ Resources:
                 Target: 'es2020'
                 Sourcemap: true
                 EntryPoints:
-                    - thing.ts
+                    - things.ts
     
     GetThingApiLambdaPermission:
         Type: AWS::Lambda::Permission
@@ -92,12 +92,12 @@ Resources:
     PostThingApiLambda:
         Type: AWS::Serverless::Function
         Properties:
-            CodeUri: ../code/api/handlers
+            CodeUri: ../code/handlers/api
             Architectures:
                 - !Ref LambdaRuntimeArchitecture
             Description: GET thing
             FunctionName: !Sub ${Environment}-${Application}-post-thing-api
-            Handler: thing.postHandler
+            Handler: things.postHandler
             Policies:
                 - AWSLambdaBasicExecutionRole
             Tracing: PassThrough # Tracing is collected by Datadog Lambda Extension integration
@@ -108,7 +108,7 @@ Resources:
                 Target: 'es2020'
                 Sourcemap: true
                 EntryPoints:
-                    - thing.ts
+                    - things.ts
     
     PostThingApiLambdaPermission:
         Type: AWS::Lambda::Permission
@@ -120,12 +120,12 @@ Resources:
     DeleteThingApiLambda:
         Type: AWS::Serverless::Function
         Properties:
-            CodeUri: ../code/api/handlers
+            CodeUri: ../code/handlers/api
             Architectures:
                 - !Ref LambdaRuntimeArchitecture
             Description: GET thing
             FunctionName: !Sub ${Environment}-${Application}-delete-thing-api
-            Handler: thing.deleteHandler
+            Handler: things.deleteHandler
             Policies:
                 - AWSLambdaBasicExecutionRole
             Tracing: PassThrough # Tracing is collected by Datadog Lambda Extension integration
@@ -136,7 +136,7 @@ Resources:
                 Target: 'es2020'
                 Sourcemap: true
                 EntryPoints:
-                    - thing.ts
+                    - things.ts
     
     DeleteThingApiLambdaPermission:
         Type: AWS::Lambda::Permission
