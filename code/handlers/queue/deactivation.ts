@@ -26,13 +26,7 @@ export const commandHandler: SQSHandler = async (event: SQSEvent, _context: Cont
 async function handleRecord(record: SQSRecord): Promise<SQSBatchItemFailure | undefined> {
     try {
         const recordBody = JSON.parse(record.body) as EventBridgeEvent<string, unknown>
-        const command = commandFactory(recordBody.detail as Record<string, unknown>)
-        const provisioned = await provisionService.provision(command)
-        if (provisioned) {
-            logger.info('provision sucessful')
-        } else {
-            logger.warn('provision skipped: %j', command)
-        }
+        logger.info('Handling record: %j', { ...recordBody })
     } catch (e) {
         logger.error('RECORD FAILURE=> Error: %s, Record: %j', { error: e, record: record })
         return {

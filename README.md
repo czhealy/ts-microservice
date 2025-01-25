@@ -13,7 +13,11 @@ A Typescript microservice starter project deployed in AWS.
 [Docker](https://docs.docker.com/desktop/setup/install/mac-install/)
 
 ## Unit Test
-
+```
+cd code
+npm install
+npm run test
+```
 ## Run locally
 ```
 sam local start-api

@@ -1,5 +1,8 @@
+
+#node_modules/
+code/node_modules
 #Coverage reports
-codew/coverage
+code/coverage
 .aws-sam
 # Compiled source #
 ###################

@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { lambdaHandler } from '../../app';
+import { getHandler } from '../../handlers/api/things';
 import { expect, describe, it } from '@jest/globals';
 
 describe('Unit test for app handler', function () {
@@ -53,12 +53,15 @@ describe('Unit test for app handler', function () {
             resource: '',
             stageVariables: {},
         };
-        const result: APIGatewayProxyResult = await lambdaHandler(event);
+        const result: APIGatewayProxyResult = await getHandler(event);
 
         expect(result.statusCode).toEqual(200);
         expect(result.body).toEqual(
             JSON.stringify({
-                message: 'hello world',
+                name: 'SingleThing',
+                status: 'New',
+                code: 'sake',
+                id: '2',
             }),
         );
     });
